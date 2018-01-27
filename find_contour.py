@@ -9,8 +9,8 @@ EPSILON_thres = 0.002
 COLOR_DIS_thres = 140
 
 # file path, not used
-Sample = "Sample"
-Sample_Pre = "Sample_Pre"
+Sample_Pre = "Sample-Pre/"
+Sample_Ori = "Sample/"
 
 def binary(img):
     # convert to gray scale
@@ -39,7 +39,8 @@ def adaptive_binary(img):
 
 def simple_threshold(pic_name, pic_origin_name=None, mode=0):
     
-    img = cv2.imread(pic_name)
+    img = cv2.imread(Sample_Pre + pic_name)
+    print(img)
     # convert to binary
     if mode == 0:
         img_thresholded = binary(img)
@@ -49,7 +50,7 @@ def simple_threshold(pic_name, pic_origin_name=None, mode=0):
         img_thresholded = otsu_binary(img)
  
     if pic_origin_name is not None:
-        img_origin = cv2.imread(pic_origin_name)
+        img_origin = cv2.imread(Sample_Ori + pic_origin_name)
     else:
         img_origin = img.copy()
     
