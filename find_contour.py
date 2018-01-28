@@ -4,11 +4,11 @@ import cv2
 import math
 from matplotlib import pyplot as plt
 
-AREA_thres = 0.001
+AREA_thres = 0.005
 EPSILON_thres = 0.002
 COLOR_DIS_thres = 140
 
-# file path, not used
+# file path
 Sample_Pre = "Sample-Pre/"
 Sample_Ori = "Sample/"
 
@@ -37,10 +37,10 @@ def adaptive_binary(img):
             cv2.THRESH_BINARY,11,2)
     return threshed_img
 
-def simple_threshold(pic_name, pic_origin_name=None, mode=0):
+def simple_threshold(pic_name, mode=0):
     
     img = cv2.imread(Sample_Pre + pic_name)
-    print(img)
+    img_origin = cv2.imread(Sample_Ori + pic_name)
     # convert to binary
     if mode == 0:
         img_thresholded = binary(img)
@@ -49,14 +49,13 @@ def simple_threshold(pic_name, pic_origin_name=None, mode=0):
     elif mode == 2:
         img_thresholded = otsu_binary(img)
  
-    if pic_origin_name is not None:
-        img_origin = cv2.imread(Sample_Ori + pic_origin_name)
-    else:
-        img_origin = img.copy()
-    
     # morphology
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
     img_thresholded = cv2.erode(img_thresholded, kernel)
+    # median filter to make area smoothed
+    img_thresholded = cv2.medianBlur(img_thresholded,5)
+    img_thresholded = cv2.dilate(img_thresholded, kernel)
+    
     # contour check
     img_contour = img_origin.copy()
     contour_find(img_thresholded, img_contour)
@@ -81,7 +80,7 @@ def simple_threshold(pic_name, pic_origin_name=None, mode=0):
 def contour_find(img, img_origin):
  
     im2, contours, hierarchy = cv2.findContours(
-            img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     # draw each contour
     valid_shape_index = 1
@@ -100,6 +99,7 @@ def contour_find(img, img_origin):
         approx = cv2.approxPolyDP(cnt, epsilon, True)
         
         cv2.drawContours(img_origin, [approx], 0, (0,255,0), 3)
+        
         print("=== valid contour for {} ===".format(valid_shape_index))
         valid_shape_index += 1
         print("Area: ", area)
