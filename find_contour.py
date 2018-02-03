@@ -2,13 +2,14 @@
 import sys
 import cv2
 import math
+import timeit
 from matplotlib import pyplot as plt
 
 import filter as fi
 
 AREA_thres = 0.003
 EPSILON_thres = 0.002
-COLOR_DIS_thres = 140
+
 
 # file path
 Sample_Pre = "Sample-Pre/"
@@ -17,9 +18,14 @@ Sample_Ori = "Sample/"
 def test_img(pic_name):
     
     img = cv2.imread(Sample_Ori + pic_name)
-    b,g,r = cv2.split(img)
+    
+    start = timeit.default_timer()
     
     gray_img = fi.adjust_spetrum_BGR(img)
+    
+    time_cost = timeit.default_timer() - start
+    
+    print("Time cost: ", time_cost)
     
     cv2.imshow("Origin", img)
     cv2.imshow("Gray", gray_img)
@@ -101,56 +107,3 @@ def contour_find(img, img_origin):
         for v in approx:
             print(v)
     
-def color_distance_BGRWeigh(pixel_1, pixel_2):
-    
-    r_bar = (pixel_1[2] + pixel_2[2]) / 2
-    delta_R = pixel_1[2] - pixel_2[2]
-    delta_G = pixel_1[1] - pixel_2[1]
-    delta_B = pixel_1[0] - pixel_2[0]
-    
-    delta_C = math.sqrt(
-            (2 + r_bar/256) * delta_R**2 +
-            (4 * delta_G**2) +
-            (2 + (255-r_bar)/256) * delta_B**2
-    )
-    
-    return delta_C
-
-def color_distance_BGR(pixel_1, pixel_2):
-    
-    delta_C = math.sqrt(
-           (pixel_1[2]-pixel_2[2])**2 +
-           (pixel_1[1]-pixel_2[1])**2 +
-           (pixel_1[0]-pixel_2[0])**2       
-    )
-    
-    return delta_C 
-
-def color_cluster(pic_name):
-    
-    img = cv2.imread(pic_name)
-    img_origin = img.copy()
-    
-    for i in range(0, img.shape[0]):
-        for j in range(0, img.shape[1]):
-            if color_distance_BGR(img[i,j], (60, 255, 255)) < COLOR_DIS_thres:
-                # set pixel to black
-                img[i,j] = (0, 0, 0)
-            else:
-                img[i,j] = (255, 255, 255)
-                
-    # convert to gray scale
-    img = 255 - cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
-    # Morphology
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
-    img_dialted = cv2.dilate(img, kernel)  
-    img_eroded = cv2.erode(img_dialted, kernel)
-     
-    contour_find(img_eroded, img_origin)
-    
-    cv2.imshow("Clustered", img_eroded)
-    cv2.imshow("Dis", img)
-    cv2.imshow("Origin", img_origin)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()

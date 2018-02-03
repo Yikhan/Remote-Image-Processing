@@ -5,6 +5,7 @@
 import sys
 import cv2
 import math
+import cython
 import random as rd
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -82,7 +83,6 @@ def adjust_spetrum_BGR(img):
     return gray_img
 
 
-
 COLOR_DIS_thres = 140
 
 def color_distance_BGRWeigh(pixel_1, pixel_2):
@@ -132,9 +132,3 @@ def color_cluster(pic_name):
     
     return img_eroded
             
-            
-    
-            
-    
-    
-    
