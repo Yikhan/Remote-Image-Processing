@@ -1,20 +1,27 @@
 # -*- coding: utf-8 -*-
 """
 @author: Yikhan
+Remote Image Processing
+Finding the construction/sand area
+functions for the algorithms implemented in find_contour.py
+----------------------------------------------------------
+updated 2018/02/08
 """
-import sys
 import cv2
 import math
-import cython
 import random as rd
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from numba import jit
+
+COLOR_DIS_thres = 140
+COLOR_GRAY_thres = 200
 
 def binary(img):
     # convert to gray scale
     imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(imgray, (9,9), 0)
-    ret, threshed_img = cv2.threshold(blur, 200, 255, 0)
+    ret, threshed_img = cv2.threshold(blur, COLOR_GRAY_thres, 255, 0)
     # invert image
     return threshed_img
 
@@ -65,7 +72,9 @@ def sample_regression(x, y):
     return Model
 
 # --------------------------------------------
-
+# Use speeding option provided by Numba
+# Can be speeded up from futher optimization
+@jit
 def adjust_spetrum_BGR(img):
     
     gray_img = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
@@ -81,9 +90,6 @@ def adjust_spetrum_BGR(img):
             gray_img[i,j] = (pixel, pixel, pixel)
             
     return gray_img
-
-
-COLOR_DIS_thres = 140
 
 def color_distance_BGRWeigh(pixel_1, pixel_2):
     
